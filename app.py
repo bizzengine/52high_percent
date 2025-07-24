@@ -18,11 +18,11 @@ def search_stock():
 def analyze_stock():
     stock_symbol = request.form['stock_symbol'].upper()
 
-    end_date = datetime.today().date()
-    start_date = end_date - timedelta(days=365 * 2)
+    # end_date = datetime.today().date()
+    start_date = datetime.today().date() - timedelta(days=365 * 2)
 
     try:
-        df = yf.download(stock_symbol, start=start_date, end=end_date, progress=False, auto_adjust=False)
+        df = yf.download(stock_symbol, start=start_date, progress=False, auto_adjust=False)
 
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.droplevel('Ticker')
