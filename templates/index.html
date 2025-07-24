@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>52high_analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid main-container">
+            <a class="navbar-brand" href="/">52high Analyzer</a>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="analyzer-card mb-4">
+            <h2>주식 52주 전고점 분석</h2>
+            <p class="text-muted mb-4">분석하고 싶은 주식 종목 코드를 정확히 입력해주세요.</p>
+            <form action="/analyze_stock" method="post" onsubmit="showLoading()">
+                <div class="mb-3 autocomplete-container">
+                    <label for="stockInput" class="form-label">종목 코드</label>
+                    <input type="text" class="form-control" id="stockInput" name="stock_symbol" placeholder="예: AAPL"
+                        required autocomplete="off">
+                    <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+                </div>
+                <button type="submit" class="btn submit-btn" id="analyzeButton">
+                    <span class="button-text">분석하기</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            {% if error %}
+            <div class="alert alert-danger mt-3" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if stock_name %}
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="stat-card">
+                    <div class="stat-title">{{ stock_name }} ({{ stock_symbol }})</div>
+                    <div class="stat-value"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-title">52주 전고점</div>
+                    <div class="stat-value">{{ "{:,.2f} USD".format(high_52_week) }}</div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-title">현재가</div>
+                    <div class="stat-value">{{ "{:,.2f} USD".format(current_price) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h5>52주 전고점 대비 하락률별 가격</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>하락률</th>
+                            <th>예상 가격</th>
+                            <th>현황</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {# price_levels 리스트에 현재가 데이터가 이미 포함되어 있으므로, 단순 반복 #}
+                        {% for level in price_levels %}
+                        <tr {% if level.is_current %}class="table-success" {% endif %}> {# 현재가 라인에 하이라이트 #}
+                            <td>
+                                {% if level.is_current %}
+                                {# 현재가 하락률은 소수점 둘째 자리까지 표시 #}
+                                -{{ "%.2f"|format(level.percent_drop) }}%
+                                {% else %}
+                                {# 기준 하락률은 정수로 표시 #}
+                                -{{ "%.0f"|format(level.percent_drop) }}%
+                                {% endif %}
+                            </td>
+                            <td>{{ "{:,.2f} USD".format(level.target_price) }}</td>
+                            <td>
+                                {% if level.is_current %}
+                                <span class="badge bg-success">
+                                    현재가 ({{ "{:,.2f} USD".format(level.target_price) }})
+                                    {# 현재가 옆에 전고점 대비 하락률 표시 #}
+                                    {% if level.percent_drop > 0 %}
+                                    (-{{ "%.2f"|format(level.percent_drop) }}%)
+                                    {% else %}
+                                    (0.00%) {# 전고점 이상일 경우 0% 또는 상승률 표시 가능 #}
+                                    {% endif %}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

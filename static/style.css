@@ -1,0 +1,220 @@
+/* style.css - 2025-07-24 수정 버전 */
+:root {
+    --primary-color: #5577B0;
+    --secondary-bg-color: #f8f9fa;
+    --card-bg-color: #ffffff;
+    --text-color: #333;
+    --muted-text-color: #6c757d;
+    --border-color: #dee2e6;
+    --header-bg-neutral: #f0f0f0;
+    /* 추가: 헤더의 중립적인 배경색 (아주 연한 회색) */
+    --table-header-text-color: var(--text-color);
+    /* 추가: 테이블 헤더 텍스트 색상 */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.main-container {
+    max-width: 900px;
+    margin-top: 50px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-color) !important;
+    font-size: 1.5rem;
+}
+
+.analyzer-card,
+.stat-card,
+.table-container {
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 15px;
+    /* 25px -> 15px 로 변경 (상하 간격 좁힘) */
+    border: 1px solid var(--border-color);
+}
+
+.analyzer-card h2 {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(85, 119, 176, 0.25);
+}
+
+.submit-btn {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    width: 50%;
+    max-width: 300px;
+    margin: 20px auto 0 auto;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: #3B5998;
+}
+
+.submit-btn:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.stat-card {
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    /* 15px -> 10px 로 변경 (stat-card 간격 더 좁힘) */
+}
+
+.stat-card .stat-title {
+    font-size: 0.95rem;
+    color: var(--muted-text-color);
+    margin-bottom: 5px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.table-container {
+    padding: 25px;
+}
+
+.table-container h5 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.table {
+    margin-bottom: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    background-color: var(--header-bg-neutral);
+    /* 변경: 연한 회색 배경 적용 */
+    color: var(--table-header-text-color);
+    /* 변경: 텍스트 색상을 기본 텍스트 색상으로 */
+    font-weight: 600;
+    /* 변경: 폰트 굵기 강조 */
+    border-bottom: 1px solid var(--border-color);
+    /* 변경: 하단 테두리 두께 및 색상 변경 */
+    padding: 10px 15px;
+    /* 변경: 패딩 줄여서 높이 감소 */
+    text-align: center;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.table tbody tr:hover {
+    background-color: var(--secondary-bg-color);
+}
+
+.table tbody td {
+    padding: 8px 15px;
+    /* 변경: 셀 패딩 줄여서 공간 확보 및 높이 감소 */
+    vertical-align: middle;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+    border-radius: 0.35rem;
+    font-weight: 600;
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.autocomplete-item:hover {
+    background-color: var(--secondary-bg-color);
+}
+
+.autocomplete-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
