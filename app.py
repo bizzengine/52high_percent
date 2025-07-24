@@ -43,10 +43,33 @@ def analyze_stock():
         
     except Exception as e:
         print(f"Error fetching data for {stock_symbol}: {e}")
-        return render_template('index.html', error=f"데이터를 가져오는 중 오류가 발생했습니다: {e}. 정확한 종목 심볼을 입력했는지 확인해주세요.")
+        return render_template('index.html', error=f"데이터를 가져오는 중 오류이 발생했습니다: {e}. 정확한 종목 심볼을 입력했는지 확인해주세요.")
 
     # 현재가 대비 52주 전고점 하락률 계산 (소수점 포함)
     actual_percent_drop = (1 - current_price / high_52_week) * 100
+
+    # 1년 전고점 대비 최대 하락가 계산
+    if len(df) >= 252:
+        df_last_year = df.tail(252)
+        high_1_year = df_last_year['High'].max()
+        low_1_year = df_last_year['Close'].min() # 변경된 부분
+        
+        if high_1_year > 0:
+            max_drop_1_year_val = (1 - low_1_year / high_1_year) * 100
+            max_drop_1_year_price = high_1_year * (1 - max_drop_1_year_val / 100)
+        else:
+            max_drop_1_year_val = 0
+            max_drop_1_year_price = high_1_year
+
+    else:
+        high_1_year = df['High'].max()
+        low_1_year = df['Close'].min() # 변경된 부분
+        if high_1_year > 0:
+            max_drop_1_year_val = (1 - low_1_year / high_1_year) * 100
+            max_drop_1_year_price = high_1_year * (1 - max_drop_1_year_val / 100)
+        else:
+            max_drop_1_year_val = 0
+            max_drop_1_year_price = high_1_year
 
     # 테이블에 표시할 기준 하락률 값들을 생성
     standard_price_levels = []
@@ -54,7 +77,7 @@ def analyze_stock():
     standard_price_levels.append({
         "percent_drop": 0,
         "target_price": high_52_week,
-        "is_current": False # 현재가 라인이 아님을 표시
+        "is_current": False
     })
     for percent_drop_val in range(5, 81, 5): # 5% 단위로 80%까지
         target_price = high_52_week * (1 - percent_drop_val / 100)
@@ -68,44 +91,66 @@ def analyze_stock():
     current_price_data = {
         "percent_drop": actual_percent_drop,
         "target_price": current_price,
-        "is_current": True # 현재가 라인임을 표시
+        "is_current": True
     }
 
-    # 현재가 데이터를 기존 price_levels 리스트에 삽입할 위치 찾기
+    # 1년 전고점 대비 최대 하락률 데이터 생성
+    max_drop_1_year_data = {
+        "percent_drop": max_drop_1_year_val,
+        "target_price": max_drop_1_year_price,
+        "is_current": False,
+        "is_max_drop_1_year": True # 1년 최대 하락률임을 식별하는 플래그
+    }
+
     price_levels_to_display = []
-    inserted = False
-    
-    # 현재가가 전고점보다 높거나 0% ~ -5% 사이에 있을 경우 0% 라인 바로 다음에 삽입
-    if actual_percent_drop <= standard_price_levels[1]["percent_drop"]: # 0% ~ 5%
-        price_levels_to_display.append(standard_price_levels[0]) # 0% 라인 추가
-        price_levels_to_display.append(current_price_data) # 현재가 라인 추가
-        inserted = True
-        for i in range(1, len(standard_price_levels)): # 나머지 기준 레벨 추가
-            price_levels_to_display.append(standard_price_levels[i])
-    else: # 5%보다 더 많이 하락한 경우
-        for i, level in enumerate(standard_price_levels):
-            price_levels_to_display.append(level) # 기준 레벨 추가
-            
-            # 현재가가 다음 기준 레벨이 존재하고 그 사이에 삽입되어야 하는 경우
-            if not inserted and i + 1 < len(standard_price_levels):
-                if actual_percent_drop > level["percent_drop"] and \
-                   actual_percent_drop < standard_price_levels[i+1]["percent_drop"]:
-                    price_levels_to_display.append(current_price_data)
-                    inserted = True
-        
-        # 만약 80%보다 더 많이 하락했는데 아직 삽입되지 않았다면 맨 마지막에 추가
-        if not inserted and actual_percent_drop >= standard_price_levels[-1]["percent_drop"]:
+    inserted_current = False
+    inserted_max_drop = False
+
+    # 0% 라인 추가
+    price_levels_to_display.append(standard_price_levels[0])
+
+    for i in range(1, len(standard_price_levels)):
+        current_level = standard_price_levels[i]
+
+        # 현재가 삽입 로직
+        if not inserted_current and actual_percent_drop > standard_price_levels[i-1]["percent_drop"] and actual_percent_drop <= current_level["percent_drop"]:
             price_levels_to_display.append(current_price_data)
-            
-    # `current_price_status`는 이제 템플릿으로 보내지 않습니다.
+            inserted_current = True
+        elif not inserted_current and i == 1 and actual_percent_drop <= standard_price_levels[0]["percent_drop"]: # 현재가가 0% 이하(전고점 이상)인 경우
+            price_levels_to_display.insert(1, current_price_data) # 0% 라인 바로 뒤에 삽입
+            inserted_current = True
+
+
+        # 1년 전고점 대비 최대 하락률 삽입 로직
+        if not inserted_max_drop and max_drop_1_year_data["percent_drop"] > standard_price_levels[i-1]["percent_drop"] and max_drop_1_year_data["percent_drop"] <= current_level["percent_drop"]:
+            # 현재가와 1년 최대 하락률이 같은 구간에 있을 경우 삽입 순서 결정 (여기서는 1년 최대 하락률이 먼저)
+            if current_price_data["percent_drop"] == max_drop_1_year_data["percent_drop"] and inserted_current:
+                 # 현재가 다음에 삽입
+                idx = price_levels_to_display.index(current_price_data)
+                price_levels_to_display.insert(idx + 1, max_drop_1_year_data)
+            else:
+                price_levels_to_display.append(max_drop_1_year_data)
+            inserted_max_drop = True
+
+        price_levels_to_display.append(current_level)
+
+    # 모든 기준 레벨을 다 추가한 후에도 현재가나 1년 최대 하락률이 삽입되지 않았다면 맨 마지막에 추가
+    if not inserted_current:
+        price_levels_to_display.append(current_price_data)
+    if not inserted_max_drop:
+        price_levels_to_display.append(max_drop_1_year_data)
+
+    # percent_drop을 기준으로 오름차순 정렬하여 표시 순서를 제어
+    price_levels_to_display.sort(key=lambda x: x['percent_drop'])
 
 
     return render_template('index.html',
-                           stock_name=stock_name,
-                           stock_symbol=stock_symbol,
-                           high_52_week=high_52_week,
-                           current_price=current_price,
-                           price_levels=price_levels_to_display) # 수정된 리스트 전달
+                            stock_name=stock_name,
+                            stock_symbol=stock_symbol,
+                            high_52_week=high_52_week,
+                            current_price=current_price,
+                            price_levels=price_levels_to_display,
+                           )
 
 if __name__ == '__main__':
     app.run(debug=True)

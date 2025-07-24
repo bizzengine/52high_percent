@@ -80,11 +80,15 @@
                     <tbody>
                         {# price_levels 리스트에 현재가 데이터가 이미 포함되어 있으므로, 단순 반복 #}
                         {% for level in price_levels %}
-                        <tr {% if level.is_current %}class="table-success" {% endif %}> {# 현재가 라인에 하이라이트 #}
+                        <tr {% if level.is_current %}class="table-success" {% elif level.is_max_drop_1_year
+                            %}class="table-info" {% endif %}> {# 현재가 및 1년 최대 하락률 라인에 하이라이트 #}
                             <td>
                                 {% if level.is_current %}
                                 {# 현재가 하락률은 소수점 둘째 자리까지 표시 #}
                                 -{{ "%.2f"|format(level.percent_drop) }}%
+                                {% elif level.is_max_drop_1_year %}
+                                {# 1년 전고점 대비 최대 하락률은 별도로 표시 #}
+                                -{{ "%.2f"|format(level.percent_drop) }}% (1년 최대 하락)
                                 {% else %}
                                 {# 기준 하락률은 정수로 표시 #}
                                 -{{ "%.0f"|format(level.percent_drop) }}%
@@ -101,6 +105,10 @@
                                     {% else %}
                                     (0.00%) {# 전고점 이상일 경우 0% 또는 상승률 표시 가능 #}
                                     {% endif %}
+                                </span>
+                                {% elif level.is_max_drop_1_year %}
+                                <span class="badge bg-primary">
+                                    1년 최대 하락가 ({{ "{:,.2f} USD".format(level.target_price) }})
                                 </span>
                                 {% else %}
                                 <span class="badge bg-secondary">-</span>
