@@ -88,7 +88,7 @@
                                 -{{ "%.2f"|format(level.percent_drop) }}%
                                 {% elif level.is_max_drop_1_year %}
                                 {# 1년 전고점 대비 최대 하락률은 별도로 표시 #}
-                                -{{ "%.2f"|format(level.percent_drop) }}% (1년 최대 하락)
+                                -{{ "%.2f"|format(level.percent_drop) }}% (올해 최대 하락)
                                 {% else %}
                                 {# 기준 하락률은 정수로 표시 #}
                                 -{{ "%.0f"|format(level.percent_drop) }}%
@@ -108,7 +108,7 @@
                                 </span>
                                 {% elif level.is_max_drop_1_year %}
                                 <span class="badge bg-primary">
-                                    1년 최대 하락가 ({{ "{:,.2f} USD".format(level.target_price) }})
+                                    올해 최대 하락가 ({{ "{:,.2f} USD".format(level.target_price) }})
                                 </span>
                                 {% else %}
                                 <span class="badge bg-secondary">-</span>
